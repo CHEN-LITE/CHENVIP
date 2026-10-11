@@ -33,7 +33,6 @@ jobs:
           install -m 0755 god   pkg/data/data/com.termux/files/usr/bin/god
           install -m 0755 rani  pkg/data/data/com.termux/files/usr/bin/rani
           install -m 0755 setup pkg/data/data/com.termux/files/usr/bin/setup
-          # chen -> god mapping
           ln -sf god pkg/data/data/com.termux/files/usr/bin/chen
           dpkg-deb --build --root-owner-group pkg chen_1.0.0_aarch64.deb
 
