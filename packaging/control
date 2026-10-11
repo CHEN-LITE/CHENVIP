@@ -1,0 +1,7 @@
+Package: chen
+Version: 1.0.0
+Architecture: aarch64
+Maintainer: CHEN-LITE
+Section: utils
+Priority: optional
+Description: CHENVIP command line tools
