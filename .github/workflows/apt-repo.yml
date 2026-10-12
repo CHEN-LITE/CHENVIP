@@ -12,7 +12,7 @@ on:
       - setup
       - god
       - rani
-      - test
+      - chen-wrapper.sh
       - packaging/control
       - .github/workflows/apt-repo.yml
 
@@ -37,6 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$APT_GPG_PRIVATE_KEY"
+
           export GNUPGHOME="$RUNNER_TEMP/gnupg"
           mkdir -m 700 -p "$GNUPGHOME"
           printf '%s\n' "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
@@ -46,54 +47,14 @@ jobs:
           mkdir -p pkg/DEBIAN "$BIN"
           cp packaging/control pkg/DEBIAN/control
 
-          # Install original binaries with their real names
           for f in setup god rani; do
             if [ -s "$f" ]; then
               install -m 0755 "$f" "$BIN/$f"
             fi
           done
-          # Rename test to avoid coreutils conflict
-          if [ -s test ]; then
-            install -m 0755 test "$BIN/chen-test"
-          fi
 
-          # Install chen wrapper (runs setup -> rani -> god)
-          cat > "$BIN/chen" <<'CHEN_WRAPPER'
-#!/data/data/com.termux/files/usr/bin/bash
-# CHENVIP wrapper: setup -> rani -> god
-# Ensure PATH includes Termux bin
-export PATH="/data/data/com.termux/files/usr/bin:$PATH"
-
-BIN="/data/data/com.termux/files/usr/bin"
-STEPS=()
-
-# Discover which of the sequence binaries exist
-for s in setup rani god; do
-  if [ -x "$BIN/$s" ]; then
-    STEPS+=("$s")
-  fi
-done
-
-if [ "${#STEPS[@]}" -eq 0 ]; then
-  echo "[chen] setup/rani/god not found" >&2
-  exit 1
-fi
-
-echo "[chen] running: ${STEPS[*]}"
-for s in "${STEPS[@]}"; do
-  echo "[chen] --> $s"
-  "$BIN/$s"
-  rc=$?
-  if [ "$rc" -ne 0 ]; then
-    echo "[chen] $s exited with $rc" >&2
-    exit "$rc"
-  fi
-done
-echo "[chen] done"
-exit 0
-
-CHEN_WRAPPER
-          chmod 0755 "$BIN/chen"
+          # chen wrapper runs setup -> rani -> god
+          install -m 0755 chen-wrapper.sh "$BIN/chen"
 
           dpkg-deb --build --root-owner-group pkg chen_1.0.0_aarch64.deb
 
@@ -102,6 +63,7 @@ CHEN_WRAPPER
           cd public
           dpkg-scanpackages --arch aarch64 pool /dev/null > dists/stable/main/binary-aarch64/Packages
           gzip -kf dists/stable/main/binary-aarch64/Packages
+
           apt-ftparchive \
             -o APT::FTPArchive::Release::Origin=CHEN-LITE \
             -o APT::FTPArchive::Release::Label=CHENVIP \
@@ -110,6 +72,7 @@ CHEN_WRAPPER
             -o APT::FTPArchive::Release::Architectures=aarch64 \
             -o APT::FTPArchive::Release::Components=main \
             release dists/stable > dists/stable/Release
+
           gpg --batch --yes --clearsign -o dists/stable/InRelease dists/stable/Release
           gpg --batch --yes -abs -o dists/stable/Release.gpg dists/stable/Release
           gpg --batch --export > chenvip-archive-keyring.gpg
