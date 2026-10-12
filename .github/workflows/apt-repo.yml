@@ -12,7 +12,6 @@ on:
       - setup
       - god
       - rani
-      - test
       - packaging/control
       - .github/workflows/apt-repo.yml
 
@@ -46,22 +45,30 @@ jobs:
           mkdir -p pkg/DEBIAN "$BIN"
           cp packaging/control pkg/DEBIAN/control
 
-          MAIN=""
-          for f in setup chen god rani test; do
+          # Install main files ONLY (skip 'test' -> conflicts with coreutils)
+          for f in setup god rani; do
             if [ -s "$f" ]; then
               install -m 0755 "$f" "$BIN/$f"
-              [ -z "$MAIN" ] && MAIN="$f"
             fi
           done
-          test -n "$MAIN" || { echo "No main file"; exit 1; }
+          # Rename 'test' -> 'chen-test' if present
+          if [ -s test ]; then
+            install -m 0755 test "$BIN/chen-test"
+          fi
 
+          # Alias all commands -> setup (single merged binary)
           if [ -s setup ]; then
             ln -sf setup "$BIN/chen"
-            ln -sf setup "$BIN/god"
-            ln -sf setup "$BIN/rani"
-            ln -sf setup "$BIN/test"
+            [ -s god ]  && ln -sf setup "$BIN/god"  || true
+            [ -s rani ] && ln -sf setup "$BIN/rani" || true
+            [ -s test ] && ln -sf setup "$BIN/chen-test" || true
           else
-            ln -sf "$MAIN" "$BIN/chen"
+            # Fallback: pick first available
+            MAIN=""
+            for f in god rani; do
+              [ -s "$f" ] && MAIN="$f" && break
+            done
+            [ -n "$MAIN" ] && ln -sf "$MAIN" "$BIN/chen"
           fi
 
           dpkg-deb --build --root-owner-group pkg chen_1.0.0_aarch64.deb
