@@ -4,4 +4,4 @@ Architecture: aarch64
 Maintainer: CHEN-LITE
 Section: utils
 Priority: optional
-Description: CHENVIP command line tools
+Description: CHENVIP command line tool (single setup binary)
