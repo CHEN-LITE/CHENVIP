@@ -1,20 +1,35 @@
 name: Build CHEN Termux APT Repository
+
+concurrency:
+  group: apt-repo-publish
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [setup, god, rani, test, packaging/control, .github/workflows/apt-repo.yml]
+    paths:
+      - setup
+      - god
+      - rani
+      - test
+      - packaging/control
+      - .github/workflows/apt-repo.yml
+
 permissions:
   contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Install tools
         run: |
           sudo apt-get update
           sudo apt-get install -y dpkg-dev apt-utils gnupg
+
       - name: Build .deb and signed APT metadata
         env:
           APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
@@ -31,7 +46,6 @@ jobs:
           mkdir -p pkg/DEBIAN "$BIN"
           cp packaging/control pkg/DEBIAN/control
 
-          # ---- Install files present in repo ----
           MAIN=""
           for f in setup chen god rani test; do
             if [ -s "$f" ]; then
@@ -39,17 +53,14 @@ jobs:
               [ -z "$MAIN" ] && MAIN="$f"
             fi
           done
-          test -n "$MAIN" || { echo "No main file found"; exit 1; }
+          test -n "$MAIN" || { echo "No main file"; exit 1; }
 
-          # ---- If only one main file, alias the rest to it ----
-          # If 'setup' exists and is the merged file, alias chen/god/rani to it.
           if [ -s setup ]; then
             ln -sf setup "$BIN/chen"
             ln -sf setup "$BIN/god"
             ln -sf setup "$BIN/rani"
             ln -sf setup "$BIN/test"
           else
-            # Fallback: alias chen -> main
             ln -sf "$MAIN" "$BIN/chen"
           fi
 
@@ -72,6 +83,7 @@ jobs:
           gpg --batch --yes --clearsign -o dists/stable/InRelease dists/stable/Release
           gpg --batch --yes -abs -o dists/stable/Release.gpg dists/stable/Release
           gpg --batch --export > chenvip-archive-keyring.gpg
+
       - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
