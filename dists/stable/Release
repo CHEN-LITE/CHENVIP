@@ -1,0 +1,23 @@
+Architectures: aarch64
+Codename: stable
+Components: main
+Date: Mon, 12 Oct 2026 14:58:04 +0000
+Label: CHENVIP
+Origin: CHEN-LITE
+Suite: stable
+MD5Sum:
+ ee70db2babe0a9f01f21677bc8aa602e              142 Release
+ ce435472270506a4263cce3cb7b9e09d              383 main/binary-aarch64/Packages
+ 7dec9ad937d5a7135f4e44a1a27b5c70              314 main/binary-aarch64/Packages.gz
+SHA1:
+ 28aa74e71988a565162971b3d771620a882cdc06              142 Release
+ 511ced428c9e79fbce7f43512912186d7016938a              383 main/binary-aarch64/Packages
+ 7ee7b1951444a8a86c47d4682319a2fa955a9759              314 main/binary-aarch64/Packages.gz
+SHA256:
+ fc8e19776bfcf52e4b155a4bdfcb2a9ec0f5a646ed3479eef0ad03b25207229f              142 Release
+ 7f8cb81ce6e85bf7885d02118fa45fb5edc9d335e8a67e0fc612f9dc2944cd4a              383 main/binary-aarch64/Packages
+ 521df2fe4e15c1b6be2b7d12983ba5c6cd3bfde0d34ecbd195d3c23341e07f54              314 main/binary-aarch64/Packages.gz
+SHA512:
+ f3a6e6dc0eb512f6ddeb74129aa9eaef2a34d2c749f42c794b0f11b3e3526680fbb078b4fe847556ac62c05aa85261823125836c121edaf547e309e5db442dc5              142 Release
+ a479d831b408410fb2dda55ec4e56fa408ad41b6e55a6168ea064fb3eb9e744d662e6edc52426c17e64ce77deda1d057bed4a4a82d18ecda4d7bf50f092a08c6              383 main/binary-aarch64/Packages
+ 9be84a29373049340a51cd4bfe2b23ad667971ec00c53c096813a919778aa0254a3d2cffcc01f8b057cfd99856a5f5a38142e4ed49ff48c87e42253976aea60f              314 main/binary-aarch64/Packages.gz
