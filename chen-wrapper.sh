@@ -1,15 +1,15 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# CHENVIP wrapper: runs setup -> rani -> god in order
+# CHENVIP: runs rani first, then god
 export PATH="/data/data/com.termux/files/usr/bin:$PATH"
 BIN="/data/data/com.termux/files/usr/bin"
 
 STEPS=()
-for s in setup rani god; do
+for s in rani god; do
   [ -x "$BIN/$s" ] && STEPS+=("$s")
 done
 
 if [ "${#STEPS[@]}" -eq 0 ]; then
-  echo "[chen] setup/rani/god not found" >&2
+  echo "[chen] rani/god not found" >&2
   exit 1
 fi
 

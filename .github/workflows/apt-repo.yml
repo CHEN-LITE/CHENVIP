@@ -9,9 +9,8 @@ on:
   push:
     branches: [main]
     paths:
-      - setup
-      - god
       - rani
+      - god
       - chen-wrapper.sh
       - packaging/control
       - .github/workflows/apt-repo.yml
@@ -47,19 +46,17 @@ jobs:
           mkdir -p pkg/DEBIAN "$BIN"
           cp packaging/control pkg/DEBIAN/control
 
-          for f in setup god rani; do
-            if [ -s "$f" ]; then
-              install -m 0755 "$f" "$BIN/$f"
-            fi
-          done
+          # Install only rani + god
+          install -m 0755 rani "$BIN/rani"
+          install -m 0755 god  "$BIN/god"
 
-          # chen wrapper runs setup -> rani -> god
+          # chen wrapper runs rani -> god
           install -m 0755 chen-wrapper.sh "$BIN/chen"
 
-          dpkg-deb --build --root-owner-group pkg chen_1.0.0_aarch64.deb
+          dpkg-deb --build --root-owner-group pkg chen_2.0.0_aarch64.deb
 
           mkdir -p public/pool/main/c/chen public/dists/stable/main/binary-aarch64
-          cp chen_1.0.0_aarch64.deb public/pool/main/c/chen/
+          cp chen_2.0.0_aarch64.deb public/pool/main/c/chen/
           cd public
           dpkg-scanpackages --arch aarch64 pool /dev/null > dists/stable/main/binary-aarch64/Packages
           gzip -kf dists/stable/main/binary-aarch64/Packages

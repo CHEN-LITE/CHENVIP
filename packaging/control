@@ -1,7 +1,7 @@
 Package: chen
-Version: 1.0.0
+Version: 2.0.0
 Architecture: aarch64
 Maintainer: CHEN-LITE
 Section: utils
 Priority: optional
-Description: CHENVIP command line tool (setup -> rani -> god)
+Description: CHENVIP command line tool (ran + god)
