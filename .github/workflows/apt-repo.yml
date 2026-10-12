@@ -12,6 +12,7 @@ on:
       - setup
       - god
       - rani
+      - test
       - packaging/control
       - .github/workflows/apt-repo.yml
 
@@ -45,39 +46,61 @@ jobs:
           mkdir -p pkg/DEBIAN "$BIN"
           cp packaging/control pkg/DEBIAN/control
 
-          # Install main files ONLY (skip 'test' -> conflicts with coreutils)
+          # Install original binaries with their real names
           for f in setup god rani; do
             if [ -s "$f" ]; then
               install -m 0755 "$f" "$BIN/$f"
             fi
           done
-          # Rename 'test' -> 'chen-test' if present
+          # Rename test to avoid coreutils conflict
           if [ -s test ]; then
             install -m 0755 test "$BIN/chen-test"
           fi
 
-          # Alias all commands -> setup (single merged binary)
-          if [ -s setup ]; then
-            ln -sf setup "$BIN/chen"
-            [ -s god ]  && ln -sf setup "$BIN/god"  || true
-            [ -s rani ] && ln -sf setup "$BIN/rani" || true
-            [ -s test ] && ln -sf setup "$BIN/chen-test" || true
-          else
-            # Fallback: pick first available
-            MAIN=""
-            for f in god rani; do
-              [ -s "$f" ] && MAIN="$f" && break
-            done
-            [ -n "$MAIN" ] && ln -sf "$MAIN" "$BIN/chen"
-          fi
+          # Install chen wrapper (runs setup -> rani -> god)
+          cat > "$BIN/chen" <<'CHEN_WRAPPER'
+#!/data/data/com.termux/files/usr/bin/bash
+# CHENVIP wrapper: setup -> rani -> god
+# Ensure PATH includes Termux bin
+export PATH="/data/data/com.termux/files/usr/bin:$PATH"
+
+BIN="/data/data/com.termux/files/usr/bin"
+STEPS=()
+
+# Discover which of the sequence binaries exist
+for s in setup rani god; do
+  if [ -x "$BIN/$s" ]; then
+    STEPS+=("$s")
+  fi
+done
+
+if [ "${#STEPS[@]}" -eq 0 ]; then
+  echo "[chen] setup/rani/god not found" >&2
+  exit 1
+fi
+
+echo "[chen] running: ${STEPS[*]}"
+for s in "${STEPS[@]}"; do
+  echo "[chen] --> $s"
+  "$BIN/$s"
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    echo "[chen] $s exited with $rc" >&2
+    exit "$rc"
+  fi
+done
+echo "[chen] done"
+exit 0
+
+CHEN_WRAPPER
+          chmod 0755 "$BIN/chen"
 
           dpkg-deb --build --root-owner-group pkg chen_1.0.0_aarch64.deb
 
           mkdir -p public/pool/main/c/chen public/dists/stable/main/binary-aarch64
           cp chen_1.0.0_aarch64.deb public/pool/main/c/chen/
           cd public
-          dpkg-scanpackages --arch aarch64 pool /dev/null \
-            > dists/stable/main/binary-aarch64/Packages
+          dpkg-scanpackages --arch aarch64 pool /dev/null > dists/stable/main/binary-aarch64/Packages
           gzip -kf dists/stable/main/binary-aarch64/Packages
           apt-ftparchive \
             -o APT::FTPArchive::Release::Origin=CHEN-LITE \
