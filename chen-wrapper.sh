@@ -1,5 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# CHENVIP: runs rani first, then god
+# CHENVIP wrapper: runs rani first, then god
 export PATH="/data/data/com.termux/files/usr/bin:$PATH"
 BIN="/data/data/com.termux/files/usr/bin"
 

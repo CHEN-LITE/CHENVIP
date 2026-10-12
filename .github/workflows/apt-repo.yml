@@ -46,11 +46,8 @@ jobs:
           mkdir -p pkg/DEBIAN "$BIN"
           cp packaging/control pkg/DEBIAN/control
 
-          # Install only rani + god
           install -m 0755 rani "$BIN/rani"
           install -m 0755 god  "$BIN/god"
-
-          # chen wrapper runs rani -> god
           install -m 0755 chen-wrapper.sh "$BIN/chen"
 
           dpkg-deb --build --root-owner-group pkg chen_2.0.0_aarch64.deb
