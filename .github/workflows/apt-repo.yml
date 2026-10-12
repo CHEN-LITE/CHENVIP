@@ -50,10 +50,10 @@ jobs:
           install -m 0755 god  "$BIN/god"
           install -m 0755 chen-wrapper.sh "$BIN/chen"
 
-          dpkg-deb --build --root-owner-group pkg chen_2.0.0_aarch64.deb
+          dpkg-deb --build --root-owner-group pkg chen_2.0.1_aarch64.deb
 
           mkdir -p public/pool/main/c/chen public/dists/stable/main/binary-aarch64
-          cp chen_2.0.0_aarch64.deb public/pool/main/c/chen/
+          cp chen_2.0.1_aarch64.deb public/pool/main/c/chen/
           cd public
           dpkg-scanpackages --arch aarch64 pool /dev/null > dists/stable/main/binary-aarch64/Packages
           gzip -kf dists/stable/main/binary-aarch64/Packages
